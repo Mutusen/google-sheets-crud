@@ -1,4 +1,5 @@
 {
+    "name": "mutusen/google-sheets-crud",
     "require": {
         "php": ">=8.0",
         "google/apiclient": "^2"
