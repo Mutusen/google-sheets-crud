@@ -1,0 +1,9 @@
+{
+    "require": {
+        "php": ">=8.0",
+        "google/apiclient": "^2"
+    },
+    "autoload": {
+        "psr-4": {"Mutusen\\GoogleSheetsCRUD\\": "src/"}
+    }
+}
