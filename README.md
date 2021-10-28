@@ -3,7 +3,7 @@
 * C: create
 * R: read
 * U: update
-* D: delete (this one is still missing)
+* D: delete
 
 ## Usage
 
@@ -150,4 +150,10 @@ $query->updateWhere('id', 9, ['name' => 'Irina']);
 $query->updateWhere('id', 10, ['name' => 'Jonas']);
 $query->updateWhere('id', 11, ['name' => 'Ines']);
 $query->execute();
+```
+
+### Delete row
+
+```php
+$data = $gs->deleteRowWhere('People', 'id', 11);
 ```

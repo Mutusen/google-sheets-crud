@@ -369,4 +369,61 @@ class GoogleSheetsCRUD
 			throw new GoogleSheetsCRUDException($e->getMessage());
 		}
 	}
+
+	/**
+	 * Finds the sheet ID from the name of the sheet
+	 * @param string $name
+	 * @return int	-1 if there is no sheet with the name
+	 */
+	private function findSheetId(string $name): int
+	{
+		$response = $this->sheetService->spreadsheets->get($this->fileId);
+		$sheets = $response->getSheets();
+
+		foreach ($sheets as $sheet) {
+			$properties = $sheet->getProperties();
+			if ($properties->getTitle() == $name) {
+				return $properties->getSheetId();
+			}
+		}
+
+		return -1;
+	}
+
+	/**
+	 * Deletes the first row where a field has a specific value.
+	 * @param string $range Name of sheet, optionally with the range you want to read (e.g. Sheet1!A1:D10)
+	 * @param string $fieldName Name of the field whose value you want to compare
+	 * @param mixed $fieldValue The value you want to find
+	 * @throws GoogleSheetsCRUDException
+	 */
+	public function deleteRowWhere(string $range, string $fieldName, mixed $fieldValue): void
+	{
+		$sheetData = $this->readAll($range);
+		$index = $this->findRowIndexWhere($sheetData, $fieldName, $fieldValue);
+		if ($index !== false) {
+			$index += $this->numberOfRowsBeforeRange($range) + 1;
+
+			$sheetId = $this->findSheetId($this->getSheetName($range));
+
+			if ($sheetId == -1) {
+				return;
+			}
+
+			$request = new \Google_Service_Sheets_BatchUpdateSpreadsheetRequest([
+				'requests' => [
+					'deleteDimension' => [
+						'range' => [
+							'sheetId' => $sheetId,
+							'dimension' => 'ROWS',
+							'startIndex' => $index,
+							'endIndex' => $index + 1
+						]
+					]
+				]
+			]);
+
+			$this->sheetService->spreadsheets->batchUpdate($this->getFileId(), $request);
+		}
+	}
 }
