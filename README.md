@@ -62,10 +62,10 @@ $gs = new GoogleSheetsCRUD(
         ...
     )
  */
-$data = $gs->getWholeRange('People');
+$data = $gs->readAll('People');
 
 // You can also specify a range in the sheet (works for all other functions except appendRow())
-$data = $gs->getWholeRange('People!B1:D6');
+$data = $gs->readAll('People!B1:D6');
 ```
 
 ### Get a specific row

@@ -95,6 +95,9 @@ class GoogleSheetsCRUD
 			if ($values[0][$i] != '') {
 				$titles[$i] = $values[0][$i];
 			}
+			else {
+				$titles[$i] = $i;
+			}
 		}
 		$last_column = $i;
 		unset($values[0]); // Remove the row with titles
