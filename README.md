@@ -19,7 +19,7 @@ id	name	country	city
 4	Tobias	Austria	Vienna
 5	Agnieszka	Poland	Sosnowiec
 6	Giorgi	Georgia	Kutaisi
-7	John	USA	Los Angles
+7	John	USA	Los Angeles
 8	Ivan	Russia	Norilsk
 9	Marina	Russia	Moscow
 10	Andreas	Germany	Berlin

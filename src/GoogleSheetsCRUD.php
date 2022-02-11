@@ -126,6 +126,7 @@ class GoogleSheetsCRUD
 	 *  Sheet1: 0
 	 *  Sheet1!A:E: 0
 	 *  Sheet1!B4:C11: 3
+	 *  Sheet1!H5:AL: 4
 	 * @param string $range Name of sheet, optionally with the range you want to read
 	 * @return int
 	 */
@@ -136,11 +137,15 @@ class GoogleSheetsCRUD
 			return 0;
 		}
 
-		if (empty($matches[1])) {
+		if (empty($matches[1]) && empty($matches[2])) { // e.g. A:B
 			$matches[1] = 1;
-		}
-		if (empty($matches[2])) {
 			$matches[2] = 1;
+		}
+		elseif (!empty($matches[1]) && empty($matches[2])) { // e.g. A5:B
+			$matches[2] = INF;
+		}
+		elseif (empty($matches[1]) && !empty($matches[2])) { // e.g. A:B5
+			$matches[1] = INF;
 		}
 		return min($matches[1], $matches[2]) - 1;
 	}
