@@ -121,6 +121,18 @@ $data = $gs->getRowsWhere('People', 'country', 'France');
 $gs->appendRow('People', [11, 'Maria', 'Italy', 'Milan']);
 ```
 
+### Insert multiple rows
+
+```php
+// You cannot use a range after the name of the sheet
+// The values have to be in the right order
+$rows = [
+    [11, 'Maria', 'Italy', 'Milan'],
+    [12, 'Oleh', 'Ukraine', 'Lviv']
+];
+$gs->appendRows('People', $rows);
+```
+
 ### Update row
 
 ```php

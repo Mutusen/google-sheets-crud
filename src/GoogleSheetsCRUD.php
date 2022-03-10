@@ -379,6 +379,28 @@ class GoogleSheetsCRUD
 	}
 
 	/**
+	 * Appends multiple rows at the bottom of a sheet
+	 * @param string $sheet Name of sheet. You cannot use a specific range in a sheet.
+	 * @param array $values	Each element must be an array with a list of values.
+	 * @param string $valueInputOption See https://developers.google.com/sheets/api/reference/rest/v4/ValueInputOption
+	 * @throws GoogleSheetsCRUDException
+	 */
+	public function appendRows(string $sheet, array $values, string $valueInputOption = 'RAW'): void
+	{
+		$conf = ['valueInputOption' => 'RAW'];
+
+		$requestBody = new \Google_Service_Sheets_ValueRange();
+		$requestBody->setValues($values);
+
+		try {
+			$response = $this->sheetService->spreadsheets_values->append($this->fileId, $sheet, $requestBody, $conf);
+		}
+		catch (\Google_Service_Exception $e) {
+			throw new GoogleSheetsCRUDException($e->getMessage());
+		}
+	}
+
+	/**
 	 * Finds the sheet ID from the name of the sheet
 	 * @param string $name
 	 * @return int	-1 if there is no sheet with the name
