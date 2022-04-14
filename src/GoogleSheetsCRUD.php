@@ -93,7 +93,11 @@ class GoogleSheetsCRUD
 		$titles = [];
 		for ($i = 0; $i < count($values[0]); $i++) {
 			if ($values[0][$i] != '') {
-				$titles[$i] = $values[0][$i];
+				$title = $values[0][$i];
+				while (in_array($title, $titles)) {
+					$title .= '_';
+				}
+				$titles[$i] = $title;
 			}
 			else {
 				$titles[$i] = $i;
