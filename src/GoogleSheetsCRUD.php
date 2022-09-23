@@ -224,16 +224,19 @@ class GoogleSheetsCRUD
 	 * @param string $columnName
 	 * @param array $sheetData
 	 * @param int $columnsBefore
-	 * @return string
+	 * @return string|null
 	 */
-	public function getColumnLetter(string $columnName, array $sheetData, int $columnsBefore): string
+	public function getColumnLetter(string $columnName, array $sheetData, int $columnsBefore): ?string
 	{
-		$columnNumber = 0;
+		$columnNumber = null;
 		$keys = array_keys($sheetData[0]);
 		for ($i = 0; $i < count($keys); $i++) {
-			if ($keys[$i] == $columnName) {
+			if ($keys[$i] === $columnName) {
 				$columnNumber = $i;
 			}
+		}
+		if ($columnNumber === null) { // Column not found
+			return null;
 		}
 
 		return $this->num2alpha($columnNumber + $columnsBefore);

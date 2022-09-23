@@ -57,6 +57,9 @@ class GSCMultipleLinesUpdate
 			$sheetName = $this->gsc->getSheetName($this->range);
 			foreach ($newValues as $field => $value) {
 				$column_letter = $this->gsc->getColumnLetter($field, $this->sheetData, $this->gsc->numberOfColumnsBeforeRange($this->range));
+				if (empty($column_letter)) {
+					continue;
+				}
 				$this->dataToUpdate[] = new \Google_Service_Sheets_ValueRange([
 					'range' => $sheetName . '!' . $column_letter . $rowId,
 					'values' => [[$value]]
