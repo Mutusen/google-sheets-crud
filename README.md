@@ -169,3 +169,18 @@ $query->execute();
 ```php
 $data = $gs->deleteRowWhere('People', 'id', 11);
 ```
+
+### Value render option
+
+The value render option (see [documentation](https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption)) can be defined in the constructor or later:
+
+```php
+$gs = new GoogleSheetsCRUD(
+    'sheet id',
+    'service account',
+    'UNFORMATTED_VALUE'
+);
+$gs->setValueRenderOption('UNFORMATTED_VALUE');
+```
+
+The default value is `FORMATTED_VALUE`, which has the disadvantage of getting all data from the sheet as strings.

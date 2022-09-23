@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Mutusen\GoogleSheetsCRUD;
 
+use Google\Exception;
+
 require(__DIR__ . '/GSCMultipleLinesUpdate.php');
 
 class GoogleSheetsCRUDException extends \Exception {}
@@ -25,14 +27,23 @@ class GoogleSheetsCRUD
 	private \Google_Service_Sheets $sheetService;
 
 	/**
+	 * @var string
+	 */
+	private string $valueRenderOption = 'FORMATTED_VALUE';
+
+	/**
 	 * @param string $fileId ID of the file (found in the URL of the Google sheet)
 	 * @param string $serviceAccount JSON given by the Google Sheets API
-	 * @throws \Google\Exception
+	 * @param string|null $valueRenderOption Default value render option, see https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption
+	 * @throws Exception
 	 */
-	public function __construct(string $fileId, string $serviceAccount)
+	public function __construct(string $fileId, string $serviceAccount, string $valueRenderOption = null)
 	{
 		$this->fileId = $fileId;
 		$this->serviceAccount = $serviceAccount;
+		if (!empty($valueRenderOption)) {
+			$this->valueRenderOption = $valueRenderOption;
+		}
 
 		if (!defined('SCOPES')) {
 			define('SCOPES', implode(' ', array(
@@ -63,15 +74,22 @@ class GoogleSheetsCRUD
 	}
 
 	/**
+	 * @param string $valueRenderOption	 Value render option for future queries, see https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption
+	 */
+	public function setValueRenderOption(string $valueRenderOption): void
+	{
+		$this->valueRenderOption = $valueRenderOption;
+	}
+
+	/**
 	 * Fetches a range from Google sheet document
 	 * @param string $range Name of sheet, optionally with the range you want to read (e.g. Sheet1!A1:D10)
 	 * @return array
 	 */
 	private function getWholeRange(string $range): array
 	{
-		$response = $this->sheetService->spreadsheets_values->get($this->fileId, $range);
-		$values = $response->getValues();
-		return $values;
+		$response = $this->sheetService->spreadsheets_values->get($this->fileId, $range, ['valueRenderOption' => $this->valueRenderOption]);
+		return $response->getValues();
 	}
 
 	/**
