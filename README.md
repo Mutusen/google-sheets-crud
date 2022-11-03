@@ -170,7 +170,9 @@ $query->execute();
 $data = $gs->deleteRowWhere('People', 'id', 11);
 ```
 
-### Value render option
+### Options
+
+#### Value render option
 
 The value render option (see [documentation](https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption)) can be defined in the constructor or later:
 
@@ -184,3 +186,13 @@ $gs->setValueRenderOption('UNFORMATTED_VALUE');
 ```
 
 The default value is `FORMATTED_VALUE`, which has the disadvantage of getting all data from the sheet as strings.
+
+#### Date time render option
+
+The date time render option (see [documentation](https://developers.google.com/sheets/api/reference/rest/v4/DateTimeRenderOption)) can be defined later:
+
+```php
+$gs->setDateTimeRenderOption('SERIAL_NUMBER');
+```
+
+The default value is `FORMATTED_STRING`.

@@ -32,6 +32,11 @@ class GoogleSheetsCRUD
 	private string $valueRenderOption = 'FORMATTED_VALUE';
 
 	/**
+	 * @var string
+	 */
+	private string $dateTimeRenderOption = 'FORMATTED_STRING';
+
+	/**
 	 * @param string $fileId ID of the file (found in the URL of the Google sheet)
 	 * @param string $serviceAccount JSON given by the Google Sheets API
 	 * @param string|null $valueRenderOption Default value render option, see https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption
@@ -82,13 +87,24 @@ class GoogleSheetsCRUD
 	}
 
 	/**
+	 * @param string $dateTimeRenderOption	DateTime render option for future queries, see https://developers.google.com/sheets/api/reference/rest/v4/DateTimeRenderOption
+	 */
+	public function setDateTimeRenderOption(string $dateTimeRenderOption): void
+	{
+		$this->dateTimeRenderOption = $dateTimeRenderOption;
+	}
+
+	/**
 	 * Fetches a range from Google sheet document
 	 * @param string $range Name of sheet, optionally with the range you want to read (e.g. Sheet1!A1:D10)
 	 * @return array
 	 */
 	private function getWholeRange(string $range): array
 	{
-		$response = $this->sheetService->spreadsheets_values->get($this->fileId, $range, ['valueRenderOption' => $this->valueRenderOption]);
+		$response = $this->sheetService->spreadsheets_values->get($this->fileId, $range, [
+			'valueRenderOption' => $this->valueRenderOption,
+			'dateTimeRenderOption' => $this->dateTimeRenderOption
+		]);
 		return $response->getValues();
 	}
 
