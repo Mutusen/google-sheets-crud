@@ -1,6 +1,9 @@
 <?php
 namespace Mutusen\GoogleSheetsCRUD;
 
+use Google\Service\Exception;
+use Google_Service_Sheets_BatchUpdateValuesRequest;
+
 class GSCMultipleLinesUpdate
 {
 	/**
@@ -23,11 +26,12 @@ class GSCMultipleLinesUpdate
 	 */
 	private array $dataToUpdate = [];
 
-	/**
-	 * Sets up a query to update multiple rows
-	 * @param GoogleSheetsCRUD $gsc
-	 * @param string $range Name of sheet, optionally with the range you want to read (e.g. Sheet1!A1:D10)
-	 */
+    /**
+     * Sets up a query to update multiple rows
+     * @param GoogleSheetsCRUD $gsc
+     * @param string $range Name of sheet, optionally with the range you want to read (e.g. Sheet1!A1:D10)
+     * @throws Exception
+     */
 	public function __construct(GoogleSheetsCRUD $gsc, string $range)
 	{
 		$this->gsc = $gsc;
@@ -44,6 +48,7 @@ class GSCMultipleLinesUpdate
 	 */
 	public function updateWhere(string $fieldName, mixed $fieldValue, array $newValues): void
 	{
+        $newValues = GoogleSheetsCRUD::removeNull($newValues);
 		$rowIds = $this->gsc->findRowIndicesWhere($this->sheetData, $fieldName, $fieldValue);
 		if (count($rowIds) == 0) {
 			return;
@@ -75,7 +80,7 @@ class GSCMultipleLinesUpdate
 	 */
 	public function execute(string $valueInputOption = 'RAW'): void
 	{
-		$body = new \Google_Service_Sheets_BatchUpdateValuesRequest([
+		$body = new Google_Service_Sheets_BatchUpdateValuesRequest([
 			'valueInputOption' => $valueInputOption,
 			'data' => $this->dataToUpdate
 		]);

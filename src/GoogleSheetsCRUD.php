@@ -4,6 +4,10 @@ declare(strict_types=1);
 namespace Mutusen\GoogleSheetsCRUD;
 
 use Google\Exception;
+use Google_Client;
+use Google_Service_Exception;
+use Google_Service_Sheets;
+use Google_Service_Sheets_ValueRange;
 
 require(__DIR__ . '/GSCMultipleLinesUpdate.php');
 
@@ -22,9 +26,9 @@ class GoogleSheetsCRUD
 	private string $serviceAccount;
 
 	/**
-	 * @var \Google_Service_Sheets
+	 * @var Google_Service_Sheets
 	 */
-	private \Google_Service_Sheets $sheetService;
+	private Google_Service_Sheets $sheetService;
 
 	/**
 	 * @var string
@@ -52,14 +56,14 @@ class GoogleSheetsCRUD
 
 		if (!defined('SCOPES')) {
 			define('SCOPES', implode(' ', array(
-					\Google_Service_Sheets::SPREADSHEETS)
+					Google_Service_Sheets::SPREADSHEETS)
 			));
 		}
 
-		$client = new \Google_Client();
+		$client = new Google_Client();
 		$client->setAuthConfig(json_decode($this->serviceAccount, true));
 		$client->setScopes(SCOPES);
-		$this->sheetService = new \Google_Service_Sheets($client);
+		$this->sheetService = new Google_Service_Sheets($client);
 	}
 
 	/**
@@ -71,9 +75,9 @@ class GoogleSheetsCRUD
 	}
 
 	/**
-	 * @return \Google_Service_Sheets
+	 * @return Google_Service_Sheets
 	 */
-	public function getSheetService(): \Google_Service_Sheets
+	public function getSheetService(): Google_Service_Sheets
 	{
 		return $this->sheetService;
 	}
@@ -94,11 +98,27 @@ class GoogleSheetsCRUD
 		$this->dateTimeRenderOption = $dateTimeRenderOption;
 	}
 
-	/**
-	 * Fetches a range from Google sheet document
-	 * @param string $range Name of sheet, optionally with the range you want to read (e.g. Sheet1!A1:D10)
-	 * @return array
-	 */
+    /**
+     * Replaces all null values in an array with empty strings, because Google Sheets does't accept null values
+     * @param array $array  Can be a multi-dimensional array
+     * @return array
+     */
+    public static function removeNull(array $array): array
+    {
+        return array_map(function ($value) {
+            if (is_array($value)) {
+                return self::removeNull($value);
+            }
+            return $value === null ? '' : $value;
+        }, $array);
+    }
+
+    /**
+     * Fetches a range from Google sheet document
+     * @param string $range Name of sheet, optionally with the range you want to read (e.g. Sheet1!A1:D10)
+     * @return array
+     * @throws \Google\Service\Exception
+     */
 	private function getWholeRange(string $range): array
 	{
 		$response = $this->sheetService->spreadsheets_values->get($this->fileId, $range, [
@@ -221,12 +241,13 @@ class GoogleSheetsCRUD
 	/**
 	 * Converts an alphabetic string into an integer.
 	 *
-	 * @param int $n This is the number to convert.
-	 * @return string The converted number.
+	 * @param string $a This is the number to convert.
+	 * @return int The converted number.
 	 * @author Theriault
 	 *
 	 */
-	private function alpha2num($a) {
+	private function alpha2num(string $a): int
+    {
 		$r = 0;
 		$l = strlen($a);
 		for ($i = 0; $i < $l; $i++) {
@@ -276,11 +297,12 @@ class GoogleSheetsCRUD
 		return $this->num2alpha($columnNumber + $columnsBefore);
 	}
 
-	/**
-	 * @param string $range Name of sheet, optionally with the range you want to read (e.g. Sheet1!A1:D10)
-	 * @param bool $hasHeader Is the first row of the range the name of fields?
-	 * @return array
-	 */
+    /**
+     * @param string $range Name of sheet, optionally with the range you want to read (e.g. Sheet1!A1:D10)
+     * @param bool $hasHeader Is the first row of the range the name of fields?
+     * @return array
+     * @throws \Google\Service\Exception
+     */
 	public function readAll(string $range, bool $hasHeader = true): array
 	{
 		$sheetData = $this->getWholeRange($range);
@@ -348,8 +370,8 @@ class GoogleSheetsCRUD
 	 * @param string $fieldName Name of the field whose value you want to compare
 	 * @param mixed $fieldValue The value you want to find
 	 * @return array|false
-	 * @throws GoogleSheetsCRUDException
-	 */
+	 * @throws GoogleSheetsCRUDException|\Google\Service\Exception
+     */
 	public function getRowWhere(string $range, string $fieldName, mixed $fieldValue): array|false
 	{
 		$sheetData = $this->readAll($range);
@@ -366,8 +388,8 @@ class GoogleSheetsCRUD
 	 * @param string $fieldName Name of the field whose value you want to compare
 	 * @param mixed $fieldValue The value you want to find
 	 * @return array
-	 * @throws GoogleSheetsCRUDException
-	 */
+	 * @throws GoogleSheetsCRUDException|\Google\Service\Exception
+     */
 	public function getRowsWhere(string $range, string $fieldName, mixed $fieldValue): array
 	{
 		$sheetData = $this->readAll($range);
@@ -402,19 +424,19 @@ class GoogleSheetsCRUD
 	 * @param string $sheet Name of sheet. You cannot use a specific range in a sheet.
 	 * @param array $values
 	 * @param string $valueInputOption See https://developers.google.com/sheets/api/reference/rest/v4/ValueInputOption
-	 * @throws GoogleSheetsCRUDException
-	 */
+	 * @throws GoogleSheetsCRUDException|\Google\Service\Exception
+     */
 	public function appendRow(string $sheet, array $values, string $valueInputOption = 'RAW'): void
 	{
 		$conf = ['valueInputOption' => 'RAW'];
 
-		$requestBody = new \Google_Service_Sheets_ValueRange();
-		$requestBody->setValues(['values' => array_values($values)]);
+		$requestBody = new Google_Service_Sheets_ValueRange();
+		$requestBody->setValues(['values' => self::removeNull(array_values($values))]);
 
 		try {
 			$response = $this->sheetService->spreadsheets_values->append($this->fileId, $sheet, $requestBody, $conf);
 		}
-		catch (\Google_Service_Exception $e) {
+		catch (Google_Service_Exception $e) {
 			throw new GoogleSheetsCRUDException($e->getMessage());
 		}
 	}
@@ -424,28 +446,29 @@ class GoogleSheetsCRUD
 	 * @param string $sheet Name of sheet. You cannot use a specific range in a sheet.
 	 * @param array $values	Each element must be an array with a list of values.
 	 * @param string $valueInputOption See https://developers.google.com/sheets/api/reference/rest/v4/ValueInputOption
-	 * @throws GoogleSheetsCRUDException
-	 */
+	 * @throws GoogleSheetsCRUDException|\Google\Service\Exception
+     */
 	public function appendRows(string $sheet, array $values, string $valueInputOption = 'RAW'): void
 	{
 		$conf = ['valueInputOption' => 'RAW'];
 
-		$requestBody = new \Google_Service_Sheets_ValueRange();
-		$requestBody->setValues($values);
+		$requestBody = new Google_Service_Sheets_ValueRange();
+		$requestBody->setValues(self::removeNull($values));
 
 		try {
 			$response = $this->sheetService->spreadsheets_values->append($this->fileId, $sheet, $requestBody, $conf);
 		}
-		catch (\Google_Service_Exception $e) {
+		catch (Google_Service_Exception $e) {
 			throw new GoogleSheetsCRUDException($e->getMessage());
 		}
 	}
 
-	/**
-	 * Finds the sheet ID from the name of the sheet
-	 * @param string $name
-	 * @return int	-1 if there is no sheet with the name
-	 */
+    /**
+     * Finds the sheet ID from the name of the sheet
+     * @param string $name
+     * @return int    -1 if there is no sheet with the name
+     * @throws \Google\Service\Exception
+     */
 	private function findSheetId(string $name): int
 	{
 		$response = $this->sheetService->spreadsheets->get($this->fileId);
@@ -466,8 +489,8 @@ class GoogleSheetsCRUD
 	 * @param string $range Name of sheet, optionally with the range you want to read (e.g. Sheet1!A1:D10)
 	 * @param string $fieldName Name of the field whose value you want to compare
 	 * @param mixed $fieldValue The value you want to find
-	 * @throws GoogleSheetsCRUDException
-	 */
+	 * @throws GoogleSheetsCRUDException|\Google\Service\Exception
+     */
 	public function deleteRowWhere(string $range, string $fieldName, mixed $fieldValue): void
 	{
 		$sheetData = $this->readAll($range);
