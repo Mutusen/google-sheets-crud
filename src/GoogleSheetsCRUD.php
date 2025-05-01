@@ -46,7 +46,7 @@ class GoogleSheetsCRUD
 	 * @param string|null $valueRenderOption Default value render option, see https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption
 	 * @throws Exception
 	 */
-	public function __construct(string $fileId, string $serviceAccount, string $valueRenderOption = null)
+	public function __construct(string $fileId, string $serviceAccount, ?string $valueRenderOption = null)
 	{
 		$this->fileId = $fileId;
 		$this->serviceAccount = $serviceAccount;
